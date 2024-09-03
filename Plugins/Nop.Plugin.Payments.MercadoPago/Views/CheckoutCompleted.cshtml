@@ -1,0 +1,26 @@
+<script>
+    function getParams(url) {
+        let params = {};
+        let parser = new URL(url);
+        let query = parser.search.substring(1);
+        let vars = query.split('&');
+        for (let i = 0; i < vars.length; i++) {
+            let pair = vars[i].split('=');
+            params[pair[0]] = decodeURIComponent(pair[1]);
+        }
+        return params;
+    }
+
+    let params = getParams(window.location.href)
+
+
+    let url = new URL('/PaymentsMercadoPagoWebhook/UpdateOrderStatus', window.location.origin).toString();
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(params)
+    })
+</script>

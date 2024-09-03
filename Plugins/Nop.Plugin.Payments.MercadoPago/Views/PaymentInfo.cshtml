@@ -1,0 +1,35 @@
+@{
+    Layout = "_Root.Head";
+}
+
+<script>
+    function createPreference() {
+        let url = new URL('/Preference/CreatePreference', window.location.origin).toString(); // Reemplaza esto con la URL de tu endpoint
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    const modelJson = JSON.stringify(result.model);
+                    // Construir la URL con el parámetro del modelo JSON
+                    const redirectUrl = new URL('/Preference/ExecutePreference', window.location.origin);
+                    redirectUrl.searchParams.append('modelJson', modelJson);
+                    // Redirigir a la nueva vista
+                    window.location.href = redirectUrl.toString();
+                } else {
+                    console.error('Error en el servidor:', result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    ConfirmOrder.successUrl = 'javascript:createPreference()';
+
+</script>

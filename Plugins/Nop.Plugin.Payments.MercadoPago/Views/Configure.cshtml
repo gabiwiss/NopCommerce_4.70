@@ -1,0 +1,124 @@
+@using Nop.Plugin.Payments.MercadoPago.Models
+@model ConfigurationModel
+@inject Nop.Core.IWebHelper webHelper
+@{
+    Layout = "_ConfigurePlugin";
+}
+
+@* @await Component.InvokeAsync(typeof(StoreScopeConfigurationViewComponent)) *@
+
+@{
+    var returnUrl = webHelper.GetRawUrl(Context.Request);
+    var stores = await Model.Stores.SelectAwait(async store => new SelectListItem
+            {
+                Text = store.Name,
+                Value = Url.Action("ChangeStoreScopeConfiguration", "Setting", new { storeid = store.Id, returnUrl }, webHelper.GetCurrentRequestProtocol()),
+                Selected = store.Id.Equals(Model.StoreId)
+            }).ToListAsync();
+    stores.Insert(0, new SelectListItem
+            {
+                Text = T("Admin.Configuration.Settings.StoreScope.AllStores").Text,
+                Value = Url.Action("ChangeStoreScopeConfiguration", "Setting", new { storeid = 0, returnUrl }, webHelper.GetCurrentRequestProtocol()),
+                Selected = 0.Equals(Model.StoreId)
+            });
+}
+
+<div class="form-group row">
+    <div class="col-md-12 store-scope-configuration">
+        <div class="label-wrapper">
+            <label class="col-form-label">
+                @T("Admin.Configuration.Settings.StoreScope")
+            </label>
+        </div>
+        <nop-select asp-for-name="store-scope-configuration" asp-items="@stores" onchange="setLocation(this.value);" style="width: auto;min-width: 300px;" />
+    </div>
+</div>
+
+<form asp-controller="PaymentsMercadoPago" asp-action="Configure" method="post">
+    <div class="cards-group">
+        <div class="card card-default">
+            <div class="card-body">
+                <p>MercadoPago Plugin Configuration: To configure your payment account, and to get PublicKey and AccesToken, visit the following link: https://www.mercadopago.com.ar/developers/</p>
+                <div class="form group row">
+                    <div class="col-md-3">
+                        <nop-label asp-for="PublicKey" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="PublicKey" />
+                        <span asp-validation-for="PublicKey"></span>
+                    </div>
+                    <div class="col-md-3">
+                        <nop-label asp-for="CountryId" />
+                    </div>
+                    <div class="col-md-7">
+                        <nop-select asp-for="CountryId" asp-items="Model.AvailableCountries" />
+                    </div>
+                </div>
+                <div class="form group row">
+                    <div class="col-md-3">
+                        <nop-label asp-for="AccessToken" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="AccessToken" />
+                        <span asp-validation-for="AccessToken"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-9 offset-md-3">
+                        <button type="submit" name="save" class="btn btn-primary">@T("Admin.Common.Save")</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="cards-group">
+    <div class="card card-default">
+        <div class="card-body">
+            <button id="tryConnectionButton">Try Connection</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const elementos = document.querySelectorAll('.checkbox');
+    elementos.forEach(elemento => {
+        elemento.style.display = 'none';
+    });
+</script>
+
+<script>
+    document.getElementById('tryConnectionButton').onclick = function () {
+        // Definir las dos cadenas que quieres enviar
+        const string1 = '@Model.PublicKey';
+        const string2 = '@Model.AccessToken';
+        const string3 = '@Model.CountryId'
+
+        // Hacer la llamada POST al método TryConnection en el controlador PaymentsMercadoPago
+        fetch('/Preference/TryConnection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                PublicKeyTest: string1,
+                AccessTokenTest: string2,
+                CountryIdTest: string3
+            })
+        })
+            .then(response => response.json()) // Parsear la respuesta a JSON
+            .then(data => {
+                // Manejar la respuesta, que debería ser true o false
+                if (data) {
+                    alert('Conexión exitosa');
+                } else {
+                    alert('Conexión fallida');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error durante la conexión');
+            });
+    };
+
+</script>

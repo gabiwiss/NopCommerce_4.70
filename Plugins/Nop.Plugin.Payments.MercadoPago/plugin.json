@@ -1,0 +1,11 @@
+{
+  "Group": "Payment methods",
+  "FriendlyName": "MercadoPago",
+  "SystemName": "Paymets.MercadoPago",
+  "Version": "4.70.1",
+  "SupportedVersions": [ "4.70" ],
+  "Author": "OSW team",
+  "DisplayOrder": -1,
+  "FileName": "Nop.Plugin.Payments.MercadoPago.dll",
+  "Description": "This plugin enables payments with MercadoPago"
+}
