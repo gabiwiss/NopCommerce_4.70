@@ -1,16 +1,14 @@
-﻿using MercadoPago.Client.Preference;
+﻿using MercadoPago.Client.Payment;
+using MercadoPago.Client.Preference;
 using MercadoPago.Config;
+using MercadoPago.Resource.Payment;
 using MercadoPago.Resource.Preference;
 using Nop.Core;
+using Nop.Plugin.Payments.MercadoPago.Countries;
+using Nop.Plugin.Payments.MercadoPago.Models;
 using Nop.Services.Configuration;
 using Nop.Services.Customers;
 using Nop.Services.Orders;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using MercadoPago.Client.Payment;
-using MercadoPago.Resource.Payment;
-using Nop.Plugin.Payments.MercadoPago.Models;
-using Nop.Plugin.Payments.MercadoPago.Countries;
 
 namespace Nop.Plugin.Payments.MercadoPago.Services;
 public class MpService
@@ -44,11 +42,10 @@ public class MpService
         var store = await _storeContext.GetCurrentStoreAsync();
         var order = (await _orderService.SearchOrdersAsync(storeId: store.Id,
             customerId: customer.Id, pageSize: 1)).FirstOrDefault();
+        var multiStoreSetting= _settingService.LoadSetting<MercadoPagoMultiStoreSettings>();
+        var mercadoPagoSettings = _settingService.LoadSetting<MercadoPagoSettings>(multiStoreSetting.Enabled ? store.Id : 0);
 
-        var mercadoPagoSettings = _settingService.LoadSetting<MercadoPagoSettings>(store.Id);
-        MercadoPagoConfig.AccessToken = !string.IsNullOrEmpty(mercadoPagoSettings.AccessToken)
-            ? mercadoPagoSettings.AccessToken
-            : _settingService.LoadSetting<MercadoPagoSettings>().AccessToken;
+        MercadoPagoConfig.AccessToken = mercadoPagoSettings.AccessToken;
 
         var request = new PreferenceRequest
         {

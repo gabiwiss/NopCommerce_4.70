@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DocumentFormat.OpenXml.Drawing.Diagrams;
-using MercadoPago.Client.Preference;
+﻿using MercadoPago.Client.Preference;
 using MercadoPago.Config;
-using MercadoPago.Resource.Preference;
 using Nop.Core;
 using Nop.Core.Domain.Stores;
 using Nop.Plugin.Payments.MercadoPago.Countries;
 using Nop.Services.Configuration;
-using Nop.Services.Directory;
 
 namespace Nop.Plugin.Payments.MercadoPago.Services;
 public class ValidationService
@@ -26,20 +18,15 @@ public class ValidationService
     }
     public async Task<bool> ValidateStoreAsync(Store store)
     {
+        var multiStoreSetting = _settingService.LoadSetting<MercadoPagoMultiStoreSettings>();
+        var mercadoPagoSettings = _settingService.LoadSetting<MercadoPagoSettings>(multiStoreSetting.Enabled ? store.Id : 0);
         
-        if (!UrlAvailables.GetUrlsAvailables().Contains(store.Url)) // validar urls cargadas
+        if (multiStoreSetting.Enabled && !UrlAvailables.GetUrlsAvailables().Contains(store.Url)) // validar urls cargadas
             return false;
 
-        var mercadoPagoSettings = _settingService.LoadSetting<MercadoPagoSettings>(store.Id);
-        MercadoPagoConfig.AccessToken = !string.IsNullOrEmpty(mercadoPagoSettings.AccessToken)
-            ? mercadoPagoSettings.AccessToken
-            : _settingService.LoadSetting<MercadoPagoSettings>().AccessToken;
+        MercadoPagoConfig.AccessToken = mercadoPagoSettings.AccessToken;
 
-        
-        var currentCountryId = !string.IsNullOrEmpty(mercadoPagoSettings.CountryId)
-            ? mercadoPagoSettings.CountryId
-            : _settingService.LoadSetting<MercadoPagoSettings>().CountryId;
-
+        var currentCountryId = mercadoPagoSettings.CountryId;
         var currentCurrency = await _workContext.GetWorkingCurrencyAsync();
         var countries = CountryCurrencyData.GetCountryInfoList();
         var country = countries.Where(x => x.Id.ToString() == currentCountryId).FirstOrDefault();

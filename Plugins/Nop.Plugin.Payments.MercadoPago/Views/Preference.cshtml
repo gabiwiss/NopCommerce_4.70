@@ -4,10 +4,9 @@
 @{
     Layout = "_ColumnsOne";
     var store = storeContext.GetCurrentStore();
-    var mercadoPagoSetting = settingsService.LoadSetting<Nop.Plugin.Payments.MercadoPago.MercadoPagoSettings>(store.Id);
-    mercadoPagoSetting = !string.IsNullOrEmpty(mercadoPagoSetting.PublicKey)
-    ? mercadoPagoSetting
-    : settingsService.LoadSetting<Nop.Plugin.Payments.MercadoPago.MercadoPagoSettings>();
+    var multiStoreSetting = settingsService.LoadSetting<Nop.Plugin.Payments.MercadoPago.MercadoPagoMultiStoreSettings>();
+    var mercadoPagoSetting = settingsService.LoadSetting<Nop.Plugin.Payments.MercadoPago.MercadoPagoSettings>(multiStoreSetting.Enabled ? store.Id: 0);
+  
 }
 
 @* <head>
@@ -29,7 +28,7 @@
 }
 else
 {
-    <div id="wallet_container" style="display:"></div>
+    <div id="wallet_container" style="display:none"></div>
 
     <div>
         <div class="page-title">

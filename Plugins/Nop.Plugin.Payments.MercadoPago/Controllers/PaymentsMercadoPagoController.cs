@@ -2,7 +2,6 @@
 using Nop.Core;
 using Nop.Plugin.Payments.MercadoPago.Factories;
 using Nop.Plugin.Payments.MercadoPago.Models;
-using Nop.Plugin.Payments.MercadoPago.Services;
 using Nop.Services.Configuration;
 using Nop.Services.Localization;
 using Nop.Services.Messages;
@@ -42,30 +41,36 @@ public class PaymentsMercadoPagoController : BasePaymentController
     {
         var storeId = await _storeContext.GetActiveStoreScopeConfigurationAsync();
         var settings = await _settingsService.LoadSettingAsync<MercadoPagoSettings>(storeId);
+        var multiStoreSetting = await _settingsService.LoadSettingAsync<MercadoPagoMultiStoreSettings>();
         var model = new ConfigurationModel()
         {
             AccessToken = settings.AccessToken,
             PublicKey = settings.PublicKey,
             CountryId = settings.CountryId,
-            StoreId = storeId
+            StoreId = storeId,
+            MultiStore = multiStoreSetting.Enabled
         };
 
-       model = await _mercadoPagoConfigurationModelFactory.PrepareMercadoPagoSettings(model);
+        model = await _mercadoPagoConfigurationModelFactory.PrepareMercadoPagoSettings(model);
 
-        return View("~/Plugins/Payments.MercadoPago/Views/Configure.cshtml.",model);
+        return View("~/Plugins/Payments.MercadoPago/Views/Configure.cshtml.", model);
     }
 
     [HttpPost]
     public async Task<IActionResult> ConfigureAsync(ConfigurationModel model)
     {
         var storeId = await _storeContext.GetActiveStoreScopeConfigurationAsync();
-        var settings = await _settingsService.LoadSettingAsync<MercadoPagoSettings>(storeId);
+        var settings = await _settingsService.LoadSettingAsync<MercadoPagoSettings>(model.MultiStore ? storeId : 0);
+        var multiStoreSetting = await _settingsService.LoadSettingAsync<MercadoPagoMultiStoreSettings>();
 
-            settings.PublicKey = model.PublicKey;
-            settings.AccessToken = model.AccessToken;
-            settings.CountryId = model.CountryId;   
+        settings.PublicKey = model.PublicKey;
+        settings.AccessToken = model.AccessToken;
+        settings.CountryId = model.CountryId;
 
-        await _settingsService.SaveSettingAsync(settings,storeId);
+        multiStoreSetting.Enabled = model.MultiStore;
+
+        await _settingsService.SaveSettingAsync(settings, storeId);
+        await _settingsService.SaveSettingAsync(multiStoreSetting);
 
         _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Plugins.Saved"));
 

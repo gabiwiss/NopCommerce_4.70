@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MercadoPago.Resource.Preference;
+﻿using MercadoPago.Resource.Preference;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Nop.Core;
@@ -62,8 +57,6 @@ public class PreferenceController : Controller
     [HttpPost]
     public async Task<IActionResult> CreatePreference()
     {
-        var reqUrl = Request.HttpContext.Request;
-        var urlHost = reqUrl.Host;
         var model = await _mpService.CreatePreference();
 
         return Json(new { success = true, model });

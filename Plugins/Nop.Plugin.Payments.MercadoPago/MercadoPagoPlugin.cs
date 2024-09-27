@@ -1,12 +1,8 @@
-﻿using DocumentFormat.OpenXml.EMMA;
-using DocumentFormat.OpenXml.Wordprocessing;
-using MercadoPago.Resource.Preference;
+﻿using MercadoPago.Resource.Preference;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Nop.Core;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Orders;
-using Nop.Plugin.Payments.Manual;
 using Nop.Plugin.Payments.MercadoPago.Components;
 using Nop.Plugin.Payments.MercadoPago.Countries;
 using Nop.Plugin.Payments.MercadoPago.Services;
@@ -19,7 +15,6 @@ using Nop.Services.Messages;
 using Nop.Services.Orders;
 using Nop.Services.Payments;
 using Nop.Services.Plugins;
-using Nop.Services.Stores;
 using Nop.Web.Framework.Infrastructure;
 
 namespace Nop.Plugin.Payments.MercadoPago;
@@ -41,8 +36,7 @@ public class MercadoPagoPlugin : BasePlugin, IPaymentMethod, IWidgetPlugin
     private readonly IOrderService _orderService;
     private readonly ILanguageService _languageService;
     #endregion
-    //public PluginDescriptor PluginDescriptor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
+    
     #region Ctor
     public MercadoPagoPlugin(IWebHelper webHelper,
                              ILocalizationService localizationService,
@@ -146,7 +140,8 @@ public class MercadoPagoPlugin : BasePlugin, IPaymentMethod, IWidgetPlugin
 
     public async Task<IList<string>> GetWidgetZonesAsync()
     {
-        var isActive = _settingService.LoadSetting<MercadoPagoSettings>().IsActive;
+        var store = _storeContext.GetCurrentStore();
+        var isActive = _settingService.LoadSetting<MercadoPagoSettings>(store.Id).IsActive;
         if (isActive)
             return await Task.FromResult(new List<string>() { "op_checkout_confirm_bottom", "checkout_completed_top" });
         else
@@ -158,9 +153,9 @@ public class MercadoPagoPlugin : BasePlugin, IPaymentMethod, IWidgetPlugin
         var store = _storeContext.GetCurrentStore();
 
         var isValid = await _validationService.ValidateStoreAsync(store);
-        var settings = await _settingService.LoadSettingAsync<MercadoPagoSettings>();
+        var settings = await _settingService.LoadSettingAsync<MercadoPagoSettings>(store.Id);
         settings.IsActive = isValid;
-        await _settingService.SaveSettingAsync(settings);
+        await _settingService.SaveSettingAsync(settings,store.Id);
 
         return !isValid;
     }
@@ -174,6 +169,10 @@ public class MercadoPagoPlugin : BasePlugin, IPaymentMethod, IWidgetPlugin
             CountryId = "",
             IsActive = false,
         });
+        await _settingService.SaveSettingAsync(new MercadoPagoMultiStoreSettings
+        {
+            Enabled = false
+        });
         await _localizationService.AddOrUpdateLocaleResourceAsync(new Dictionary<string, string>
         {
             ["Plugins.Payment.MercadoPagoPaymentMethodDescription"] = "Pay using MercadoPago payment method",
@@ -185,7 +184,7 @@ public class MercadoPagoPlugin : BasePlugin, IPaymentMethod, IWidgetPlugin
         {
             var currency = await _currencyService.GetCurrencyByCodeAsync(country.CurrencyId);
             if (currency == null)
-                await _currencyService.InsertCurrencyAsync(new Core.Domain.Directory.Currency()
+                await _currencyService.InsertCurrencyAsync(new Currency()
                 {
                     CurrencyCode = country.CurrencyId,
                     Name = country.Name,
@@ -200,12 +199,6 @@ public class MercadoPagoPlugin : BasePlugin, IPaymentMethod, IWidgetPlugin
 
     public Task PostProcessPaymentAsync(PostProcessPaymentRequest postProcessPaymentRequest) // USAR PARA MERCADO PAGO
     {
-        //var orderSubtotal = postProcessPaymentRequest.Order.OrderSubTotalDiscountInclTax;
-        //var preference = _mpService.ConfigureAsync(orderSubtotal);
-
-
-        //return View("~/Plugins/Nop.Plugin.Payments.MercadoPago/Views/Index.cshtml.", preference);
-
         return Task.FromResult(true);
     }
 
@@ -271,14 +264,14 @@ public class MercadoPagoPlugin : BasePlugin, IPaymentMethod, IWidgetPlugin
 
     }
 
-    //public Task PreparePluginToUninstallAsync()
-    //{
-    //    throw new NotImplementedException();
-    //}
-
     public override async Task UninstallAsync()
     {
         await _settingService.DeleteSettingAsync<MercadoPagoSettings>();
+        await _localizationService.DeleteLocaleResourcesAsync(new List<string>
+        {
+            "Plugins.Payment.MercadoPagoPaymentMethodDescription",
+            "Plugins.Payment.MercadoPagoPayment.Country.None"
+        });
         await base.UninstallAsync();
     }
 

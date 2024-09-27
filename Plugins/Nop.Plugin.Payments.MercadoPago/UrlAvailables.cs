@@ -10,6 +10,7 @@ public static class UrlAvailables
 
     public static List<string> GetUrlsAvailables()
     {
-        return new List<string>() { "https://localhost:5001/", "https://storehost2:5002/" };
+        //return new List<string>() { "https://localhost:5001/", "https://storehost2:5002/" };
+        return new List<string>() { "https://store1.com/", "https://store2.com/" };
     }
 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Nop.Plugin.Payments.MercadoPago.Countries;
+﻿namespace Nop.Plugin.Payments.MercadoPago.Countries;
 public enum CountryId
 {
     AR, BR, CL, CO, MX, PE, UY, VE

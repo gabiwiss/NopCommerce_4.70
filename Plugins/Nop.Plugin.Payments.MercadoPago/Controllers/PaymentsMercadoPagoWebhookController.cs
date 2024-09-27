@@ -1,19 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MercadoPago.Client.Payment;
-using MercadoPago.Config;
+﻿using MercadoPago.Client.Payment;
 using MercadoPago.Resource.Payment;
-using MercadoPago.Client.PaymentMethod;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nop.Plugin.Payments.MercadoPago.Models;
 using Nop.Services.Configuration;
 using Nop.Services.Orders;
-using MercadoPago.Resource.Preference;
-using MercadoPago.Client.Preference;
 
 namespace Nop.Plugin.Payments.MercadoPago.Controllers;
 public class PaymentsMercadoPagoWebhookController : Controller

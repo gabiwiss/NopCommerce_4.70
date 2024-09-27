@@ -23,6 +23,14 @@
             });
 }
 
+<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="advanced-settings-mode" checked="@Model.MultiStore">
+<label class="onoffswitch-label" for="advanced-settings-mode">
+    <span class="onoffswitch-inner"
+          data-locale-basic="TiendaUnica"
+          data-locale-advanced="MultiTienda"></span>
+    <span class="onoffswitch-switch"></span>
+</label>
+
 <div class="form-group row">
     <div class="col-md-12 store-scope-configuration">
         <div class="label-wrapper">
@@ -71,6 +79,7 @@
             </div>
         </div>
     </div>
+    <input class="checkbox-multi-store" type=checkbox asp-for="MultiStore"/>
 </form>
 <div class="cards-group">
     <div class="card card-default">
@@ -121,4 +130,24 @@
             });
     };
 
+</script>
+
+<script>
+    function checkAdvancedSettingsMode(advanced) {
+        if (advanced) {
+            document.querySelector(".store-scope-configuration").style.display = "block";
+            document.querySelector(".checkbox-multi-store").checked = true;
+        } else {
+            document.querySelector(".store-scope-configuration").style.display = "none";
+            document.querySelector(".checkbox-multi-store").checked = false;
+        }
+    }
+
+    checkAdvancedSettingsMode($("#advanced-settings-mode").is(':checked'));
+    $(function () {
+        $("#advanced-settings-mode")
+            .click(function () {
+                checkAdvancedSettingsMode($(this).is(':checked'));
+            });
+    });
 </script>
